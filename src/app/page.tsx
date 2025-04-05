@@ -224,7 +224,7 @@ export default function LandingPage() {
                 ]}
                 buttonText="Contact Sales"
                 buttonVariant="outline"
-                highlighted={true}
+                highlighted={false}
               />
             </div>
           </div>
@@ -422,6 +422,7 @@ function PricingCard({
       </div>
       <ul className="mb-6 flex-1 space-y-2">
         {features.map((feature, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
           <li key={i} className="flex items-center">
             <CheckCircle className="mr-2 h-4 w-4 text-primary" />
             <span>{feature}</span>
