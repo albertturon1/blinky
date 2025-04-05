@@ -1,9 +1,15 @@
 "use server";
 
 import { redirect } from "next/navigation";
-
 import type { SignupFormState } from "@/app/signup/signup-form";
-import { type SignupSchema, signupSchema } from "./schema";
+import {
+  signupBetterAuthErrorSchema,
+  type SignupSchema,
+  signupSchema,
+} from "@/app/signup/schema";
+import { auth } from "@/lib/auth";
+import { ZodError } from "zod";
+import { AUTH_CLIENT_ERROR_CODES } from "@/lib/auth-client";
 
 export async function signup(
   _prevState: SignupFormState,
@@ -26,36 +32,47 @@ export async function signup(
       };
     }
 
-    const userResponse = await fetch("http://localhost:3000/api/users", {
-      method: "POST",
-      body: JSON.stringify(validatedFields.data),
+    const userResponse = await auth.api.signUpEmail({
+      body: {
+        email: validatedFields.data.email,
+        password: validatedFields.data.password,
+        name: validatedFields.data.username,
+      },
+      asResponse: true,
     });
 
     const userResponseData = await userResponse.json();
 
-    if (
-      userResponse.status === 409 &&
-      userResponseData &&
-      typeof userResponseData === "object" &&
-      "error" in userResponseData &&
-      typeof userResponseData.error === "string"
-    ) {
-      return {
-        values: validatedFields.data,
-        errorMessage: userResponseData.error,
-      };
-    }
-
     if (!userResponse.ok) {
+      const userResponseDataError =
+        signupBetterAuthErrorSchema.parse(userResponseData);
+
+      switch (userResponseDataError.code) {
+        case AUTH_CLIENT_ERROR_CODES.USER_ALREADY_EXISTS:
+          return {
+            values: validatedFields.data,
+            errorMessage:
+              "User already exists. Please use a different credentials.",
+          };
+        default:
+          return {
+            values: validatedFields.data,
+            errorMessage: "Failed to create an account. Please try again.",
+          };
+      }
+    }
+  } catch (error) {
+    if (error instanceof ZodError) {
+      // usually here should be some reporting about changes zod schema or better-auth codes
       return {
-        values: validatedFields.data,
+        values: rawData,
         errorMessage: "Failed to create an account. Try again.",
       };
     }
-  } catch (_error) {
+
     return {
       values: rawData,
-      errorMessage: "Failed to create an account. Try again XXXX.",
+      errorMessage: "Failed to create an account. Try again.",
     };
   }
 

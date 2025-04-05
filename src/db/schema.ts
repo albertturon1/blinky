@@ -1,34 +1,78 @@
 import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
-// Users table (authentication)
-export const usersTable = sqliteTable("users", {
-  id: integer("id").primaryKey(),
-  email: text("email").unique().notNull(),
-  passwordHash: text("password_hash"), // Optional for OAuth users
-  createdAt: integer("created_at").notNull(), // Store as UNIX timestamp
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: integer("email_verified", { mode: "boolean" }).notNull(),
+  image: text("image"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
-// Profiles table (public bio pages)
-export const profilesTable = sqliteTable("profiles", {
-  id: integer("id").primaryKey(),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => usersTable.id, { onDelete: "cascade" }),
-  username: text("username").unique().notNull(),
+export const userProfiles = sqliteTable("user_profiles", {
+  id: text("id").primaryKey(),
   bio: text("bio"),
+  username: text("username").notNull().unique(),
   avatarUrl: text("avatar_url"),
-  themeId: integer("theme_id").references(() => themesTable.id, {
-    onDelete: "set null",
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const sessions = sqliteTable("sessions", {
+  id: text("id").primaryKey(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const accounts = sqliteTable("accounts", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: integer("access_token_expires_at", {
+    mode: "timestamp",
   }),
+  refreshTokenExpiresAt: integer("refresh_token_expires_at", {
+    mode: "timestamp",
+  }),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+export const verifications = sqliteTable("verifications", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }),
+  updatedAt: integer("updated_at", { mode: "timestamp" }),
 });
 
 // Links table (user-defined links)
 export const linksTable = sqliteTable("links", {
   id: integer("id").primaryKey(),
-  profileId: integer("profile_id")
+  userId: text("user_id")
     .notNull()
-    .references(() => profilesTable.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   url: text("url").notNull(),
   thumbnailUrl: text("thumbnail_url"),
@@ -36,42 +80,31 @@ export const linksTable = sqliteTable("links", {
   isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(), // Toggle visibility
 });
 
-// Themes table (for profile customization)
-export const themesTable = sqliteTable("themes", {
-  id: integer("id").primaryKey(),
-  name: text("name").notNull(),
-  backgroundColor: text("background_color", { length: 7 }).notNull(), // HEX format
-  textColor: text("text_color", { length: 7 }).notNull(),
-  buttonColor: text("button_color", { length: 7 }).notNull(),
-});
+// --- Relations ---
 
-// Relations
-export const usersRelations = relations(usersTable, ({ one }) => ({
-  profile: one(profilesTable, {
-    fields: [usersTable.id],
-    references: [profilesTable.userId],
+export const userRelations = relations(users, ({ many }) => ({
+  sessions: many(sessions),
+  accounts: many(accounts),
+  links: many(linksTable),
+}));
+
+export const sessionRelations = relations(sessions, ({ one }) => ({
+  users: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
   }),
 }));
 
-export const profilesRelations = relations(profilesTable, ({ one, many }) => ({
-  user: one(usersTable, {
-    fields: [profilesTable.userId],
-    references: [usersTable.id],
-  }),
-  links: many(linksTable),
-  theme: one(themesTable, {
-    fields: [profilesTable.themeId],
-    references: [themesTable.id],
+export const accountRelations = relations(accounts, ({ one }) => ({
+  users: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
   }),
 }));
 
 export const linksRelations = relations(linksTable, ({ one }) => ({
-  profile: one(profilesTable, {
-    fields: [linksTable.profileId],
-    references: [profilesTable.id],
+  users: one(users, {
+    fields: [linksTable.userId],
+    references: [users.id],
   }),
-}));
-
-export const themesRelations = relations(themesTable, ({ many }) => ({
-  profiles: many(profilesTable),
 }));
