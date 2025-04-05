@@ -49,7 +49,7 @@ export async function POST(request: Request) {
               error: "This email is already registered",
               field: "email",
             }),
-            { status: 409 }
+            { status: 409 },
           );
         }
 
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
               error: "This username is already taken",
               field: "username",
             }),
-            { status: 409 }
+            { status: 409 },
           );
         }
       }
@@ -69,13 +69,13 @@ export async function POST(request: Request) {
       JSON.stringify({
         error: "Internal server error",
       }),
-      { status: 500 }
+      { status: 500 },
     );
   }
 
   return new Response(
     JSON.stringify({
       message: "User created successfully",
-    })
+    }),
   );
 }

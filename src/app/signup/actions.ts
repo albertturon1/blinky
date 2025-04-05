@@ -13,7 +13,7 @@ import { AUTH_CLIENT_ERROR_CODES } from "@/lib/auth-client";
 
 export async function signup(
   _prevState: SignupFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<SignupFormState> {
   const rawData: SignupSchema = {
     email: formData.get("email") as string,

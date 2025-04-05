@@ -104,6 +104,7 @@ export default function LandingPage() {
                       "Online Store",
                     ].map((link, i) => (
                       <div
+                        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                         key={i}
                         className="rounded-lg border bg-card p-3 text-center shadow-sm hover:shadow transition-all"
                       >
@@ -192,6 +193,7 @@ export default function LandingPage() {
                 ]}
                 buttonText="Get Started"
                 buttonVariant="outline"
+                highlighted={true}
               />
               <PricingCard
                 title="Pro"
@@ -222,6 +224,7 @@ export default function LandingPage() {
                 ]}
                 buttonText="Contact Sales"
                 buttonVariant="outline"
+                highlighted={true}
               />
             </div>
           </div>
@@ -445,13 +448,14 @@ function TestimonialCard({
     <div className="flex flex-col rounded-lg border bg-card p-6 shadow-sm">
       <div className="mb-4 text-muted-foreground">
         {[...Array(5)].map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
           <span key={i} className="text-yellow-500">
             ★
           </span>
         ))}
       </div>
       <blockquote className="mb-4 flex-1">
-        <p className="italic">"{quote}"</p>
+        <p className="italic">&quot;{quote}&quot;</p>
       </blockquote>
       <div>
         <p className="font-bold">{author}</p>

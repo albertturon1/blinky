@@ -7,9 +7,11 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
+		"format": "prettier --write ./src",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"db:studio": "drizzle-kit studio",
+		"precommit": "pnpm format && pnpm lint"
 	},
 	"dependencies": {
 		"@libsql/client": "^0.15.2",
@@ -38,6 +40,7 @@
 		"drizzle-kit": "^0.30.6",
 		"eslint": "^9",
 		"eslint-config-next": "15.2.4",
+		"prettier": "^3.5.3",
 		"tailwindcss": "^4",
 		"typescript": "^5.8.2"
 	}
