@@ -1,8 +1,5 @@
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
-import { config } from "dotenv";
-
-config({ path: ".env" });
 
 if (!process.env.TURSO_CONNECTION_URL || !process.env.TURSO_AUTH_TOKEN) {
   throw new Error("TURSO_CONNECTION_URL and TURSO_AUTH_TOKEN must be set");

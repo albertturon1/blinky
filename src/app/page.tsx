@@ -53,7 +53,9 @@ export default function LandingPage() {
             <Link href="#" className="text-sm font-medium hover:text-primary">
               Log in
             </Link>
-            <Button>Get Started</Button>
+            <Link href="/signup">
+              <Button>Get Started</Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -73,9 +75,11 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" className="gap-1">
-                    Start for Free <ArrowRight className="h-4 w-4" />
-                  </Button>
+                  <Link href="/signup">
+                    <Button size="lg" className="gap-1">
+                      Start for Free <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   <Button size="lg" variant="outline">
                     See Demo
                   </Button>

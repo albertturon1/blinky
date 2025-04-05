@@ -2,7 +2,7 @@ import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
 // Users table (authentication)
-export const users = sqliteTable("users", {
+export const usersTable = sqliteTable("users", {
   id: integer("id").primaryKey(),
   email: text("email").unique().notNull(),
   passwordHash: text("password_hash"), // Optional for OAuth users
@@ -10,25 +10,25 @@ export const users = sqliteTable("users", {
 });
 
 // Profiles table (public bio pages)
-export const profiles = sqliteTable("profiles", {
+export const profilesTable = sqliteTable("profiles", {
   id: integer("id").primaryKey(),
   userId: integer("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   username: text("username").unique().notNull(),
   bio: text("bio"),
   avatarUrl: text("avatar_url"),
-  themeId: integer("theme_id").references(() => themes.id, {
+  themeId: integer("theme_id").references(() => themesTable.id, {
     onDelete: "set null",
   }),
 });
 
 // Links table (user-defined links)
-export const links = sqliteTable("links", {
+export const linksTable = sqliteTable("links", {
   id: integer("id").primaryKey(),
   profileId: integer("profile_id")
     .notNull()
-    .references(() => profiles.id, { onDelete: "cascade" }),
+    .references(() => profilesTable.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   url: text("url").notNull(),
   thumbnailUrl: text("thumbnail_url"),
@@ -37,7 +37,7 @@ export const links = sqliteTable("links", {
 });
 
 // Themes table (for profile customization)
-export const themes = sqliteTable("themes", {
+export const themesTable = sqliteTable("themes", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
   backgroundColor: text("background_color", { length: 7 }).notNull(), // HEX format
@@ -46,23 +46,32 @@ export const themes = sqliteTable("themes", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ one }) => ({
-  profile: one(profiles, { fields: [users.id], references: [profiles.userId] }),
-}));
-
-export const profilesRelations = relations(profiles, ({ one, many }) => ({
-  user: one(users, { fields: [profiles.userId], references: [users.id] }),
-  links: many(links),
-  theme: one(themes, { fields: [profiles.themeId], references: [themes.id] }),
-}));
-
-export const linksRelations = relations(links, ({ one }) => ({
-  profile: one(profiles, {
-    fields: [links.profileId],
-    references: [profiles.id],
+export const usersRelations = relations(usersTable, ({ one }) => ({
+  profile: one(profilesTable, {
+    fields: [usersTable.id],
+    references: [profilesTable.userId],
   }),
 }));
 
-export const themesRelations = relations(themes, ({ many }) => ({
-  profiles: many(profiles),
+export const profilesRelations = relations(profilesTable, ({ one, many }) => ({
+  user: one(usersTable, {
+    fields: [profilesTable.userId],
+    references: [usersTable.id],
+  }),
+  links: many(linksTable),
+  theme: one(themesTable, {
+    fields: [profilesTable.themeId],
+    references: [themesTable.id],
+  }),
+}));
+
+export const linksRelations = relations(linksTable, ({ one }) => ({
+  profile: one(profilesTable, {
+    fields: [linksTable.profileId],
+    references: [profilesTable.id],
+  }),
+}));
+
+export const themesRelations = relations(themesTable, ({ many }) => ({
+  profiles: many(profilesTable),
 }));
